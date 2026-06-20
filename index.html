@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Joric's Order of the Sinking Star Interactive Map</title>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-mouse-position@1.2.0/src/L.Control.MousePosition.min.css">
+<script type="text/javascript" src="https://cdn.rawgit.com/ardhi/Leaflet.MousePosition/master/src/L.Control.MousePosition.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" integrity="sha512-fYyZwU1wU0QWB4Yutd/Pvhy5J1oWAwFXun1pt+Bps04WSe4Aq6tyHlT4+MHSJhD8JlLfgLuC4CbCnX5KHSjyCg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" integrity="sha512-ENrTWqddXrLJsQS2A86QmvA17PkJ0GVm1bqj5aTgpeMAfDKN2+SIOLpKG8R/6KkimnhTb+VW5qqUHB/r1zaRgg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" integrity="sha512-TiMWaqipFi2Vqt4ugRzsF8oRoGFlFFuqIi30FFxEPNw58Ov9mOy6LgC05ysfkxwLE0xVeZtmr92wVg9siAFRWA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.css">
+
+
+<style>
+
+.leaflet-container .leaflet-overlay-pane svg,
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer {
+  max-width: none !important;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+
+html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; }
+
+.custom-marker-container {
+  position: relative;
+  width: 30px;
+  height: 50px;
+  text-align: center;
+}
+
+.marker-icon {
+  width: 30px;
+  height: 40px;
+  background: url('https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png') no-repeat center;
+  background-size: contain;
+}
+
+.marker-label {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 200px;
+  font-size: 14px;
+  color: white;
+  text-shadow: 1px 1px 4px black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /*pointer-events: none;*/
+}
+
+</style>
+
+</head>
+
+<div id="map"></div>
+
+
+<body>
+
+<script>
+
+let map = null;
+
+function drawMap() {
+    var transformation = new L.Transformation(1, 0, 1, 0);
+
+    map = L.map('map', {
+
+        crs: L.extend({}, L.CRS.Simple, {
+            transformation: transformation
+        }),
+
+        minZoom: -2,
+        maxZoom: 8,
+        zoomSnap: 0.1,
+        zoomControl: false,
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Define image bounds (1920x1080)
+    var bounds = [
+        [0, 0],           // top-left corner (y, x)
+        [1080, 1920]      // bottom-right corner (y, x)
+    ];
+
+    // Add image overlay
+    L.imageOverlay('tiles/base/map.png', bounds).addTo(map);
+
+    // Fit map to image bounds
+    map.fitBounds(bounds);
+
+    map.on('mousemove', function(e) {
+      let p = {x:e.latlng.lng, y:e.latlng.lat};
+      document.title = 'X:' + p.x.toFixed(5) + ' Y:' + p.y.toFixed(5);
+    });
+
+
+    const markerGroup = L.layerGroup().addTo(map);
+
+/*
+    map.on('click', e => {
+        var lng = e.latlng.lng;
+        var lat = e.latlng.lat;
+
+
+        let cellSize = 10;
+
+
+        let x = Math.round(lng / cellSize) * cellSize
+        let y = Math.round(lat / cellSize) * cellSize
+
+
+        let t = `[${x}, ${y}, 0]`;
+
+        navigator.clipboard.writeText(t);
+
+        // Open popup
+        L.popup()
+            .setLatLng(e.latlng)
+            .setContent(t + '<br>(copied to clipboard)')
+            .openOn(map);
+    });
+
+*/
+
+  fetch('data/markers.json').then(r=>r.json()).then(data=>{
+
+  /*
+    L.geoJSON(data, {
+      pointToLayer: (feature, latlng) =>L.marker(latlng),
+    }).bindPopup(marker => { return '<pre>'+JSON.stringify(marker.feature, null, 2)+'</pre>' + String(marker.getLatLng())})
+      .bindTooltip(marker => marker.feature.properties.name).addTo(map)
+  */
+
+    counters = {};
+
+    for (const feature of data.features) {
+
+      let title = feature.properties.name;
+      let area = feature.properties.area;
+
+      let latlng = [feature.geometry.coordinates[1],feature.geometry.coordinates[0]];
+
+      if (!latlng) continue;
+
+      let marker = L.marker(latlng, {
+        icon: L.divIcon({
+          html: `
+            <div class="custom-marker-container">
+              <div class="marker-icon"></div>
+              <div class="marker-label">${title}</div>
+            </div>
+          `,
+          className: 'custom-marker', // for additional styling
+          iconSize: [30, 50], // [width, height] - MUST include space for label
+          iconAnchor: [15, 40] // [x, y] - point of the icon that corresponds to marker location
+        }),
+
+        searchText: (title + ' ' + area + ' ').toLowerCase(),
+      })
+
+      //let marker = L.marker(convert(feature.geometry.coordinates));
+
+      counters[feature.properties.area] = (counters[feature.properties.area]||0) +1;
+
+      marker.feature = feature;
+
+      marker.bindTooltip(marker => `${marker.feature.properties.name} (${marker.feature.properties.area})`);
+
+      marker.bindPopup(marker => { return '<pre>'+JSON.stringify(marker.feature, null, 2)+'</pre>' + String(marker.getLatLng())});
+
+      marker.addTo(markerGroup);
+    }
+
+      console.log('total', data.features.length);
+      console.log(counters);
+
+
+      searchControl = new L.Control.Search({propertyName: 'searchText', initial: false, layer: markerGroup, hideMarkerOnCollapse: true}).addTo(map);
+  })
+
+  const svgLayer = L.svg({padding: 2}).addTo(map);
+  const svg = svgLayer._container;
+
+  function drawGrid() {
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    //if (map.getZoom() <= 6) return;
+
+    const size = 2048;
+
+    const topLeft = map.containerPointToLatLng([0,0]);
+    const bottomRight = map.containerPointToLatLng([map.getSize().x,map.getSize().y]);
+
+    const spacing = 10;
+
+    const minX = Math.max(0, Math.floor(Math.min(topLeft.lng, bottomRight.lng)));
+    const maxX = Math.min(size, Math.ceil(Math.max(topLeft.lng, bottomRight.lng)));
+    const minY = Math.max(0, Math.floor(Math.min(topLeft.lat, bottomRight.lat)));
+    const maxY = Math.min(size, Math.ceil(Math.max(topLeft.lat, bottomRight.lat)));
+
+    let stroke = 'rgba(255,255,255,0.75)';
+
+    for (let x = minX; x <= maxX; x += spacing) {
+      const p1 = map.latLngToLayerPoint([minY, x]);
+      const p2 = map.latLngToLayerPoint([maxY, x]);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', p1.x);
+      line.setAttribute('y1', p1.y);
+      line.setAttribute('x2', p2.x);
+      line.setAttribute('y2', p2.y);
+      line.setAttribute('stroke', stroke);
+      line.setAttribute('stroke-width', x%16==0 ? '2':'1');
+      svg.appendChild(line);
+    }
+
+    for (let y = minY; y <= maxY; y += spacing) {
+      const p1 = map.latLngToLayerPoint([y, minX]);
+      const p2 = map.latLngToLayerPoint([y, maxX]);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', p1.x);
+      line.setAttribute('y1', p1.y);
+      line.setAttribute('x2', p2.x);
+      line.setAttribute('y2', p2.y);
+      line.setAttribute('stroke', stroke);
+      line.setAttribute('stroke-width', y%16==0 ? '2' : '1');
+      svg.appendChild(line);
+    }
+
+
+    /*
+    if (map.getZoom() <= 8) return;
+
+    for (let y = minY; y < maxY; y += spacing) {
+      for (let x = minX; x < maxX; x += spacing) {
+
+        let [r,g,b] = getColor(x,y);
+        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+        stroke = brightness > 128 ? 'black' : 'white';
+        const hex = '#' + [r,g,b].map(x => x.toString(16).padStart(2, '0')).join('')
+
+        if (map.getZoom()==9) {
+            const point = map.latLngToLayerPoint([y+.5, x+.5]);
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('font-size', '13');
+            text.setAttribute('fill', stroke);
+            text.setAttribute('x', point.x);
+            text.setAttribute('y', point.y);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.textContent = hex;
+            svg.appendChild(text);
+        } else {
+          let labels = [`${hex}`,`${r},${g},${b}`];
+          const point = map.latLngToLayerPoint([y, x]);
+          for (const i in labels ) {
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('font-size', '13');
+            text.setAttribute('fill', stroke);
+            text.setAttribute('x', point.x+10);
+            text.setAttribute('y', point.y+10 + i*16);
+            text.setAttribute('text-anchor', 'start');
+            text.setAttribute('dominant-baseline', 'hanging');
+            text.textContent = labels[i];
+            svg.appendChild(text);
+          }
+        }
+      }
+    }
+    */
+  }
+
+  //map.on('move zoomend moveend resize', drawGrid);
+  //map.whenReady(drawGrid);
+
+  window.addEventListener("keydown",function (e) {
+    if (e.code=='KeyF') {
+      if (e.ctrlKey) {
+        searchControl.expand(true);
+        e.preventDefault();
+      } else if (!e.target.id.startsWith('searchtext')) {
+        //map.toggleFullscreen();
+      }
+    } else if (e.code=='Enter') {
+      //
+    }
+  });
+
+
+}
+
+window.onload = function() {
+  drawMap();
+
+}
+
+</script>
+</body>
+</html>

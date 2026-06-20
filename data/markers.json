@@ -66,7 +66,7 @@
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [880, 300, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_14"}},
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [890, 300, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_15"}},
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [890, 310, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_reprise"}},
-    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [890, 320, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes16v4"}},
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [890, 320, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_16v4"}},
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [890, 330, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_18"}},
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [820, 390, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_3_v2"}},
     { "type": "Feature", "geometry": { "type": "Point", "coordinates": [820, 400, 0] }, "properties": { "type": "level", "area": "heroes2_monsters", "name": "heroes2_thief_goblin"}},

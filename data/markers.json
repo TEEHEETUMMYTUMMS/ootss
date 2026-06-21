@@ -136,6 +136,23 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          24.0,
+          -1.0
+        ]
+      },
+      "properties": {
+        "title": "6",
+        "type": "level",
+        "solution": "wa4wasd3w2asdsa2was3xawa9d4s3aw2dwa5d5s2dwdwa7d6xaw",
+        "area": "mirror",
+        "name": "mirror_6_alt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           44.0,
           18.0
         ]
@@ -161,21 +178,6 @@
         "type": "level",
         "area": "mirror",
         "name": "mirror_14"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          24.0,
-          -1.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "mirror",
-        "name": "mirror_6_alt"
       }
     },
     {

@@ -3,6 +3,6 @@
 set src=.\levels
 set dst=..\images\levels
 
-for %%f in ("%src%\*.png") do (
+for %%f in ("%src%\water\*.png") do (
   vips webpsave "%%f" "%dst%\%%~nf.webp" --Q 70 --vips-progress
 )

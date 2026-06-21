@@ -111,6 +111,10 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; }
   border-radius: 4px;
 }
 
+.wrap {
+  word-wrap: break-word;
+}
+
 </style>
 
 </head>
@@ -307,7 +311,7 @@ function drawMap() {
           wrapper.innerHTML = `
             <div class="popup-header">${props.name} (${props.area}) [${getCoordinates(marker)}]</div>
             ${bodyHTML}
-            ${props.solution||'No solution available yet'}
+            <span class="wrap">${props.solution||'No solution available yet'}</span>
           `;
           return wrapper;
         };
@@ -318,14 +322,14 @@ function drawMap() {
         img.onload = () => {
           const wrapper = buildWrapper(`<img class="popup-image" src="${img.src}">`);
           marker.unbindPopup();
-          marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 500, minWidth: 360 });
+          marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 360, minWidth: 360 });
           marker.openPopup();
         };
 
         img.onerror = () => {
           const wrapper = buildWrapper(`<div class="image-error">only mirror area images are available just yet</div>`);
           marker.unbindPopup();
-          marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 500, minWidth: 360 });
+          marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 360, minWidth: 360 });
           marker.openPopup();
         };
       });

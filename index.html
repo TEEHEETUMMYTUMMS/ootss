@@ -311,7 +311,7 @@ function drawMap() {
           wrapper.innerHTML = `
             <div class="popup-header">${props.name} (${props.area}) [${getCoordinates(marker)}]</div>
             ${bodyHTML}
-            <span class="wrap">${props.solution||''}</span>
+            <span class="wrap"><a href="https://github.com/joric/ootss/wiki#solutions" target=_blank>${props.solution||''}</a></span>
           `;
           return wrapper;
         };

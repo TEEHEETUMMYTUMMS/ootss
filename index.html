@@ -93,17 +93,6 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
   max-height: 360px;
 }
 
-.popup-header {
-  font-size: 16px;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 2px;
-}
-.popup-subheader {
-  font-size: 13px;
-  color: #777;
-  margin-bottom: 8px;
-}
 .image-wrapper img {
   display: block;
   max-width: 100%;
@@ -330,10 +319,10 @@ function drawMap() {
 
       marker.feature = feature;
 
-      const getCoordinates = marker=>`${marker.feature.geometry.coordinates[0]}, ${marker.feature.geometry.coordinates[1]}`;
+      const getCoordinates = marker=>`${marker.feature.geometry.coordinates[0]},${marker.feature.geometry.coordinates[1]}`;
 
 
-      marker.bindTooltip(marker => `<b>${marker.feature.properties.name}</b><br/>${marker.feature.properties.area}<br/>${getCoordinates(marker)}`, {offset: [15,-25]});
+      marker.bindTooltip(marker => `<b>${marker.feature.properties.name}</b><br/>${marker.feature.properties.area} (${getCoordinates(marker)})`, {offset: [15,-25]});
 
       //marker.bindPopup(marker => { return `<div class="image-wrapper"><img src="images/levels/${marker.feature.properties.name}.webp"></div>`}, {
 
@@ -345,7 +334,7 @@ function drawMap() {
           const wrapper = document.createElement('div');
           wrapper.className = 'image-wrapper';
           wrapper.innerHTML = `
-            <div class="popup-header"><a href="javascript:copyToClipboard('${props.name}')">${props.name}</a> (${props.area}) [${getCoordinates(marker)}]</div>
+            <div class="popup-header"><a href="javascript:copyToClipboard('${props.name}')"><b>${props.name}</b></a><br>${props.area} (${getCoordinates(marker)})</div><hr/>
             ${bodyHTML}
             <span class="wrap"><a href="https://github.com/joric/ootss/wiki#solutions" target=_blank>${props.solution||''}</a></span>
           `;

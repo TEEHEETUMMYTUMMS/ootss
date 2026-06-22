@@ -181,7 +181,7 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
   flex: 1;
   width: 100%;
   height: 100%;
-  padding: 10px 20px 20px;
+  padding: 8px 20px 20px;
   box-sizing: border-box;
 }
 
@@ -295,6 +295,10 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
   font-family: sans-serif;
 }
 
+.caption-title {}
+.caption-subtitle {  font-size: 16px; }
+
+
 .mainSwiper .swiper-slide .slide-bg {
   width: 100%;
   height: 100%;
@@ -387,7 +391,7 @@ function updateCaption() {
   if (!record) return
   caption.innerHTML = `
     <div class="caption-title">${record.title || ''}</div>
-    <div class="caption-desc"><small>${record.area || ''}</small></div>
+    <div class="caption-subtitle">${record.area || ''}</div>
   `
 }
 

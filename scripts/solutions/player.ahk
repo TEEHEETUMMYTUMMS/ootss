@@ -65,22 +65,36 @@ Play(s) {
 }
 
 ; Ctrl+Alt+E: set index to a specific level by name (does NOT play)
-^!e:: {
+^e:: {
     global solMap, solNames, solIndex
-    name := InputBox("Enter level name (e.g. mirror_3)", "Set level").Value
-    found := false
-    for i, n in solNames {
-        if (n = name) {
-            solIndex := i - 1  ; so next Alt+E plays this level
-            found := true
-            break
+
+    pickGui := Gui("+AlwaysOnTop", "Set level")
+    pickGui.Add("Text", , "Choose level:")
+    ddl := pickGui.Add("DropDownList", "w250 vChoice", solNames)
+    ddl.Choose(1)
+
+    okBtn := pickGui.Add("Button", "w100 Default", "OK")
+    okBtn.OnEvent("Click", PickLevel)
+    pickGui.OnEvent("Close", (*) => pickGui.Destroy())
+    pickGui.Show("AutoSize")
+
+    PickLevel(*) {
+        saved := pickGui.Submit()  ; reads vChoice etc, hides gui
+        name := saved.Choice
+        found := false
+        for i, n in solNames {
+            if (n = name) {
+                solIndex := i - 1
+                found := true
+                break
+            }
         }
+        if found
+            ToolTip("Index set to: " name)
+        else
+            ToolTip("Level '" name "' not found")
+        SetTimer(() => ToolTip(), -1200)
     }
-    if found
-        ToolTip("Index set to: " name)
-    else
-        ToolTip("Level '" name "' not found")
-    SetTimer(() => ToolTip(), -1200)
 }
 
 ; Esc: cancel current execution, but still pass Escape through to the game

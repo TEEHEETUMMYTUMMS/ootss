@@ -24,8 +24,11 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-search@4.0.0/dist/leaflet-search.src.min.css">
 
-<style>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<style>
 .github-corner {
   position: fixed; /* or absolute, depending on your needs */
   top: 0;
@@ -75,7 +78,7 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
   position: absolute;
   left: 0;
   bottom: 0;
-  z-index: 9999;
+  z-index: 5000;
   padding: 2em 1em;
 
   font-size: 14px;
@@ -131,11 +134,189 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
   color: inherit;
 }
 
+/*--------------------------*/
+
+#galleryOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+#galleryOverlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+#closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+#closeBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mainSwiper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 10px 20px 20px;
+  box-sizing: border-box;
+}
+
+.mainSwiper .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.mainSwiper .swiper-slide img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  cursor: pointer;
+  user-select: none;
+}
+
+.thumbSwiper {
+  width: 100%;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.thumbSwiper .swiper-slide {
+  width: 12.5%;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.thumbSwiper .swiper-slide:hover {
+  opacity: 0.75;
+}
+
+.thumbSwiper .swiper-slide-thumb-active:hover {
+  opacity: 1; 
+}
+
+.thumbSwiper .swiper-slide img {
+  width: 100% !important;
+  height: 100% !important;
+
+  object-fit: cover;
+  display: block;
+}
+
+.thumbSwiper .swiper-slide-thumb-active {
+  opacity: 1;
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+
+.mainSwiper .swiper-button-prev,
+.mainSwiper .swiper-button-next {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  color: #fff;
+  transition: background 0.2s ease;
+  z-index: 10;
+}
+
+.mainSwiper .swiper-button-prev:hover,
+.mainSwiper .swiper-button-next:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.mainSwiper .swiper-button-prev::after,
+.mainSwiper .swiper-button-next::after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.mainSwiper .swiper-button-prev {
+  left: 20px;
+}
+
+.mainSwiper .swiper-button-next {
+  right: 20px;
+}
+
+@media (max-width: 600px) {
+  .mainSwiper .swiper-button-prev,
+  .mainSwiper .swiper-button-next {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mainSwiper .swiper-button-prev::after,
+  .mainSwiper .swiper-button-next::after {
+    font-size: 16px;
+  }
+}
+
+.gallery-caption {
+  color: #fff;
+  text-align: center;
+  font-size: 32px;
+  padding: 5px 20px;
+  min-height: 24px;
+  flex-shrink: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  font-family: sans-serif;
+}
+
+
 </style>
 
 </head>
 
 <body>
+
+
+<div id="galleryOverlay">
+  <div id="closeBtn">✕</div>
+
+  <div id="caption" class="gallery-caption"></div>
+
+  <div class="swiper mainSwiper">
+    <div class="swiper-wrapper" id="main"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+  </div>
+
+  <div class="swiper swiper-thumbs thumbSwiper">
+    <div class="swiper-wrapper" id="thumbs"></div>
+  </div>
+</div>
 
 <div id="map"></div>
 
@@ -153,6 +334,179 @@ Order of the Sinking Star Demo (19 June 2026)
 <script>
 
 let map = null;
+let markerGroup = null;
+
+let images = [
+  { src: 'images/levels/mirror_1.webp', title: 'mirror_1' },
+  { src: 'images/levels/mirror_2.webp', title: 'mirror_2' },
+  { src: 'images/levels/mirror_3.webp', title: 'mirror_3' },
+  { src: 'images/levels/mirror_4.webp', title: 'mirror_4' },
+  { src: 'images/levels/mirror_5.webp', title: 'mirror_5' },
+  { src: 'images/levels/mirror_6.webp', title: 'mirror_6' },
+
+  { src: 'images/levels/mirror_1.webp', title: 'mirror_1' },
+  { src: 'images/levels/mirror_2.webp', title: 'mirror_2' },
+  { src: 'images/levels/mirror_3.webp', title: 'mirror_3' },
+  { src: 'images/levels/mirror_4.webp', title: 'mirror_4' },
+  { src: 'images/levels/mirror_5.webp', title: 'mirror_5' },
+  { src: 'images/levels/mirror_6.webp', title: 'mirror_6' },
+
+
+  { src: 'images/levels/mirror_1.webp', title: 'mirror_1' },
+  { src: 'images/levels/mirror_2.webp', title: 'mirror_2' },
+  { src: 'images/levels/mirror_3.webp', title: 'mirror_3' },
+  { src: 'images/levels/mirror_4.webp', title: 'mirror_4' },
+  { src: 'images/levels/mirror_5.webp', title: 'mirror_5' },
+  { src: 'images/levels/mirror_6.webp', title: 'mirror_6' },
+
+]
+
+function focusMarkerByName(name) {
+  let found = null
+
+  map.eachLayer((layer) => {
+
+    if (layer instanceof L.Marker) {
+      console.log(layer);
+      if (layer.feature.properties.name === name) found = layer;
+    }
+  })
+
+  if (!found) return;
+
+  map.flyTo(found.getLatLng(), map.getZoom(), { duration: 0.1 })
+  map.once('moveend', () => {
+    found.fire('click');
+    found.closeTooltip();
+  })
+}
+
+let mainSwiper = null;
+let thumbSwiper = null;
+
+function updateCaption() {
+  const record = images[mainSwiper.activeIndex]
+  if (!record) return
+  // тут полный доступ к объекту — title, description, author и т.д.
+  caption.innerHTML = `
+    <div class="caption-title">${record.title || ''}</div>
+    <div class="caption-desc"><small>${record.area || ''}</small></div>
+  `
+}
+
+function openImage(name) {
+  const index = images.findIndex((item) => item.name === name);
+  const overlay = document.getElementById('galleryOverlay')
+  overlay.classList.add('open')
+  requestAnimationFrame(() => {
+    mainSwiper.update()
+    thumbSwiper.update()
+    mainSwiper.slideTo(index, 0);
+    thumbSwiper.slideTo(index, 0)
+    updateCaption()
+  })
+}
+
+function initImages() {
+  const overlay = document.getElementById('galleryOverlay')
+  const closeBtn = document.getElementById('closeBtn')
+  const main = document.getElementById('main')
+  const thumbs = document.getElementById('thumbs')
+
+  // build slides
+  for (const item of images) {
+    main.insertAdjacentHTML('beforeend',
+      `<div class="swiper-slide"><img src="${item.src}"></div>`
+    )
+
+    thumbs.insertAdjacentHTML('beforeend',
+      `<div class="swiper-slide"><img src="${item.src}"></div>`
+    )
+  }
+
+  thumbSwiper = new Swiper('.thumbSwiper', {
+    spaceBetween: 4,
+    slidesPerView: 'auto',
+    watchSlidesProgress: true,
+    centeredSlides: true,
+
+    freeMode: {
+      enabled: true,
+      momentum: true,
+      momentumRatio: 1,
+      momentumVelocityRatio: 1,
+      sticky: false,
+    },
+    mousewheel: {
+      sensitivity: 1,
+
+      thresholdDelta: 0,   // минимальная "сила" скролла для срабатывания — снижаем порог
+      thresholdTime: 0,    // минимальное время между событиями — убираем искусственную задержку
+
+    },
+    speed: 150,
+  })
+
+  mainSwiper = new Swiper('.mainSwiper', {
+    spaceBetween: 10,
+    thumbs: {
+      swiper: thumbSwiper,
+    },
+
+      speed: 150,
+
+    keyboard: {
+      enabled: true,
+      onlyInViewport: false,
+    },
+    mousewheel: {
+      sensitivity: 1,
+      releaseOnEdges: true,
+
+      thresholdDelta: 0,   // минимальная "сила" скролла для срабатывания — снижаем порог
+      thresholdTime: 0,    // минимальное время между событиями — убираем искусственную задержку
+
+
+    },
+
+    mousewheel: true,
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+  })
+
+  mainSwiper.on('slideChange', updateCaption)
+
+  function closeGallery() {
+    overlay.classList.remove('open')
+  }
+
+  closeBtn.onclick = closeGallery
+
+  mainSwiper.on('click', (swiper, event) => {
+    if (event.target.tagName === 'IMG') {
+
+      const record = images[swiper.activeIndex];
+
+      closeGallery();
+
+      if (record) {
+        focusMarkerByName(record.name)
+      }
+    }
+  })
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeGallery()
+  })
+
+
+}
+
+
+
+//----------------------------------------
 
 function updateMarkerLabels() {
   const currentZoom = map.getZoom();
@@ -233,7 +587,7 @@ function drawMap() {
   // Fit map to image bounds
   //map.fitBounds(bounds);
 
-  const markerGroup = L.layerGroup().addTo(map);
+  markerGroup = L.layerGroup().addTo(map);
 
 
 /*
@@ -293,10 +647,17 @@ function drawMap() {
 
     layers['SPOILER_image'] = imageLayer;
 
+    images = [];
+
     for (const feature of data.features) {
 
       let title = feature.properties.name;
+      let name = feature.properties.name;
       let area = feature.properties.area;
+
+      if (area != 'locations') {
+        images.push( {src: `images/levels/${name}.webp`, name: name, area: area, title: title});
+      }
 
       let latlng = [feature.geometry.coordinates[1],feature.geometry.coordinates[0]];
 
@@ -350,7 +711,7 @@ function drawMap() {
         img.src = `images/levels/${name}.webp`;
 
         img.onload = () => {
-          const wrapper = buildWrapper(`<hr><img class="popup-image" src="${img.src}">`);
+          const wrapper = buildWrapper(`<hr><a href="javascript:openImage('${name}');"><img class="popup-image" src="${img.src}"></a>`);
           marker.unbindPopup();
           marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 360, minWidth: 360 });
           marker.openPopup();
@@ -421,17 +782,7 @@ function drawMap() {
 
     searchControl = new L.Control.Search({propertyName: 'searchText', initial: false, layer: markerGroup, hideMarkerOnCollapse: true}).addTo(map);
 
-
-
-
-
-
-
-
-
-
-
-
+    initImages();
 
   })
 
@@ -543,7 +894,6 @@ function drawMap() {
       //
     }
   });
-
 
 }
 

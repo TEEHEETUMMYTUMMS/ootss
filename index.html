@@ -365,9 +365,12 @@ Order of the Sinking Star Demo (19 June 2026)
 
 let map = null;
 let markerGroup = null;
+let regionData = null;
 let images = [];
 
 let currentOpenMarker = null;
+
+let polygonLayer = null;
 
 function focusMarkerByName(name) {
   let found = null
@@ -533,13 +536,30 @@ function initImages() {
 
 //----------------------------------------
 
-function updateMarkerLabels() {
+function updateZoom() {
+
   const currentZoom = map.getZoom();
   const showLabels = currentZoom >= 5; // Adjust threshold as needed
   document.querySelectorAll('.marker-label').forEach(label => {
     label.style.display = showLabels ? 'block' : 'none';
     //label.style.fontSize = (currentZoom*3) + 'px';
   });
+
+  /*
+  let shouldShow = zoom <= 4;
+
+  if (shouldShow) {
+      if (!map.hasLayer(polygonLayer)) {
+          map.addLayer(polygonLayer);
+      }
+      //polygonLayer.setStyle({ 0.25, 0.25 });
+  } else {
+      if (map.hasLayer(polygonLayer)) {
+          map.removeLayer(polygonLayer);
+      }
+  }
+  */
+
 }
 
 function copyToClipboard(text) {
@@ -604,6 +624,8 @@ function drawMap() {
     center: center,
     zoomControl: false,
     maxZoom: 8,
+    renderer: L.canvas({ padding: 0.5 }),
+
   });
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -621,28 +643,47 @@ function drawMap() {
     document.title = 'X:' + p.x.toFixed(0) + ' Y:' + p.y.toFixed(0);
   });
 */
+
 /*
   map.on('click', e => {
       var lng = e.latlng.lng;
       var lat = e.latlng.lat;
-
-
       let cellSize = 1;
-
-
       let x = Math.round(lng / cellSize) * cellSize
       let y = Math.round(lat / cellSize) * cellSize
-
-
       let t = `[${x}, ${y}]`;
-
-      //navigator.clipboard.writeText(t);
+      navigator.clipboard.writeText(t);
       // Open popup
-      //L.popup().setLatLng(e.latlng).setContent(t + '<br>(copied to clipboard)').openOn(map);
+      L.popup().setLatLng(e.latlng).setContent(t + '<br>(copied to clipboard)').openOn(map);
 
-      console.log(t);
-  });
+      //console.log(t);
+  }); 
 */
+  polygonLayer = L.geoJSON(regionData, {
+
+      style: { color: 'white', weight: 1, fillOpacity: 0.25 },
+
+      onEachFeature: (feature, layer) => {
+          //layer.bindPopup(feature.properties.title);
+
+        // Hover effects
+        layer.on('mouseover', function(e) {
+            this.setStyle({
+                fillOpacity: 0.5,  // Increase opacity on hover
+                weight: 2,          // Thicker border
+            });
+            this.bringToFront();    // Bring to front
+        });
+        
+        layer.on('mouseout', function(e) {
+            this.setStyle({
+                fillOpacity: 0.25,   // Back to original opacity
+                weight: 1,           // Original border width
+            });
+        });
+
+      }
+  });//.addTo(map);
 
 
   fetch('data/markers.json').then(r=>r.json()).then(data=>{
@@ -671,6 +712,9 @@ function drawMap() {
     });//.addTo(map);
 
     layers['SPOILER_image'] = imageLayer;
+
+    layers['areas'] = polygonLayer;
+
 
     images = [];
 
@@ -808,10 +852,10 @@ function drawMap() {
     let layercontrol = L.control.layers(baseLayers, overlaysWithCounts, {collapsed: false, position: 'topright'}).addTo(map);
 
 
-    map.on('zoom overlayadd', updateMarkerLabels);
+    map.on('zoom overlayadd', updateZoom);
 
 
-    updateMarkerLabels();
+    updateZoom();
 
     searchControl = new L.Control.Search({propertyName: 'searchText', initial: false, layer: markerGroup, hideMarkerOnCollapse: true}).addTo(map);
 
@@ -935,7 +979,10 @@ function drawMap() {
 }
 
 window.onload = function() {
-  drawMap();
+  fetch('data/regions.json').then(r=>r.json()).then(data=>{
+    regionData = data;
+    drawMap();
+  });
 }
 
 </script>

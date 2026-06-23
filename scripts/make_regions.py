@@ -15,12 +15,12 @@ dy = -74 - (192-108)//2 + 0.5
 colorMap = {
     '#000000': { 'name': 'center',       'title': 'Center' },
     '#ffff00': { 'name': 'crossroads',   'title': 'Crossroads'        },
-    '#00ffff': { 'name': 'promesst',     'title': 'The Promise'       },
-    '#ff0000': { 'name': 'heroes1',      'title': 'Heroes of Hauling' },
-    '#00ff00': { 'name': 'heroes2',      'title': 'Heroes 2: Monsters' },
-    '#0000ff': { 'name': 'heroes3',      'title': 'Heroes 3: Bard, Druid' },
-    '#ff00ff': { 'name': 'mirror',       'title': 'Mirror Isles' },
-    '#80ffff': { 'name': 'water',        'title': 'Heroes and Water' },
+    '#546eba': { 'name': 'promesst',     'title': 'The Promise'       },
+    '#f09025': { 'name': 'mirror',       'title': 'Mirror Isles' },
+    '#0000ff': { 'name': 'heroes1',      'title': 'Heroes of Hauling' },
+    '#ff00ff': { 'name': 'heroes2',      'title': 'Heroes 2: Monsters' },
+    '#00ff00': { 'name': 'heroes3',      'title': 'Heroes 3: Bard, Druid' },
+    '#00ffff': { 'name': 'water',        'title': 'Heroes and Water' },
 };
 
 # Load image with rasterio

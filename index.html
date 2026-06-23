@@ -11,6 +11,8 @@
 <meta property="og:description" content="Order ot the Sinking Star Interactive Map. Track locations, uncover hidden secrets, and navigate the world with ease using this cartography tool." />
 <meta property="og:locale" content="en_US" />
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
@@ -320,6 +322,54 @@ html, body, #map { width:100%; height: 100%; margin: 0; padding: 0; overflow: hi
 }
 
 
+
+.icon-base i {
+  text-align: center;
+  position: absolute;
+  color: white;
+  width: 64px;
+  font-size: 28px;
+  top: 10px;
+}
+
+.icon-base::before{
+  font-family: 'Font Awesome 7 Free';
+  font-weight: 900;
+  content: "\f041";
+  text-align: center;
+  position: absolute;
+  width: 64px;
+  font-size: 64px;
+  top: -16px;
+}
+
+.icon-48 i {
+  width: 48px;
+  font-size: 24px;
+  top: 2px;
+}
+
+.icon-48::before {
+  width: 48px;
+  font-size: 48px;
+  top: -16px;
+  text-shadow: 0 0 1px black;
+}
+
+.icon-48 .icon-text {
+  position: absolute;
+  color: black;
+  text-align: center;
+  left: 8px;
+  top: 4px;
+  font-size: 16px;
+
+  width: 32px;
+
+  font-family: Tahoma, arial, verdana, sans-serif;
+}
+
+
 </style>
 
 </head>
@@ -361,6 +411,9 @@ Order of the Sinking Star Demo (19 June 2026)
 let map = null;
 let markerGroup = null;
 let regionData = null;
+
+let regionColors = {};
+
 let images = [];
 
 let currentOpenMarker = null;
@@ -385,6 +438,53 @@ function focusMarkerByName(name) {
     found.closeTooltip();
   })
 }
+
+
+function getIconHTML(feature, size=48) {
+
+  let title = feature.properties.title;
+  let options = null;
+
+  options = options || {class:'fa fa-circle', bg:'dimgrey'};
+
+
+  options.bg = regionColors[feature.properties.area] || 'dimgrey';
+
+  if (feature.properties.area=='locations') {
+    options.bg = 'dimgrey';
+    options.class = 'fa fa-location';
+    title = '';
+
+  }
+
+
+  let bg = options.bg || 'dimgrey';
+  let fg = options.fg || 'white';
+
+  let html = options.html || `<i class="${options.class}" style="color:${fg}"><span class="icon-text">${title}</span></i>`;
+
+  return `<span class="icon-base icon-${size}" style="color:${bg}">${html}</span>`;
+}
+
+let baseIcon = (feature) => {
+  let size = 48;
+  return L.divIcon({
+    className: 'divIcon',
+    html: getIconHTML(feature, size),
+    iconSize:     [size, size], // size of the icon
+    iconAnchor:   [size/2, size], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, -size*1.1], // point from which the popup should open relative to the iconAnchor
+  });
+};
+
+let icons = {};
+
+
+const getIcon = f => ({bg: 'red', fg: 'blue'});
+
+
+const customMarker = (latlng, feature) => L.marker(latlng, {feature: feature, id: feature.properties.path, icon: baseIcon(feature)});
+
 
 let mainSwiper = null;
 let thumbSwiper = null;
@@ -625,6 +725,9 @@ function drawMap() {
     maxZoom: 8,
     renderer: L.canvas({ padding: 0.5 }),
 
+    zoomSnap: 0.5,
+    zoomDelta: 0.5,
+    wheelPxPerZoomLevel: 100,
   });
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -664,6 +767,9 @@ function drawMap() {
 
       onEachFeature: (feature, layer) => {
           //layer.bindPopup(feature.properties.title);
+
+
+        regionColors[feature.properties.name] = feature.properties.color;
 
         // Hover effects
         layer.on('mouseover', function(e) {
@@ -715,11 +821,19 @@ function drawMap() {
 
     images = [];
 
+    count = 0;
+
+    let area = '';
+
     for (const feature of data.features) {
 
       let title = feature.properties.name;
       let name = feature.properties.name;
-      let area = feature.properties.area;
+
+      if (area != feature.properties.area) count = 0;
+      count = count + 1;
+
+      area = feature.properties.area;
 
       if (area != 'locations') {
         images.push( {src: `images/levels/${name}.webp`, name: name, area: area, title: title});
@@ -729,6 +843,12 @@ function drawMap() {
 
       if (!latlng) continue;
 
+
+      feature.properties.title = count;
+
+      let marker = customMarker(latlng, feature);
+
+      /*
       let marker = L.marker(latlng, {
         icon: L.divIcon({
           html: `
@@ -744,6 +864,8 @@ function drawMap() {
 
         searchText: (title).toLowerCase(),
       })
+      */
+
 
       //let marker = L.marker(convert(feature.geometry.coordinates));
 
@@ -754,7 +876,7 @@ function drawMap() {
       const getCoordinates = marker=>`${marker.feature.geometry.coordinates[0]},${marker.feature.geometry.coordinates[1]}`;
 
 
-      marker.bindTooltip(marker => `<b>${marker.feature.properties.name}</b><br/>${marker.feature.properties.area} (${getCoordinates(marker)})`, {offset: [15,-25]});
+      marker.bindTooltip(marker => `<b>${marker.feature.properties.name}</b><br/>${marker.feature.properties.area} (${getCoordinates(marker)})`, {offset: [20,-35]});
 
       //marker.bindPopup(marker => { return `<div class="image-wrapper"><img src="images/levels/${marker.feature.properties.name}.webp"></div>`}, {
 
@@ -787,14 +909,14 @@ function drawMap() {
         img.onload = () => {
           const wrapper = buildWrapper(`<a href="javascript:openImage('${name}');"><img class="popup-image" src="${img.src}"></a>`);
           marker.unbindPopup();
-          marker.bindPopup(wrapper, { offset: [0, -35], maxWidth: 360, minWidth: 360 });
+          marker.bindPopup(wrapper, { offset: [0,5], maxWidth: 360, minWidth: 360 });
           marker.openPopup();
         };
 
         img.onerror = () => {
           const wrapper = buildWrapper(`<div class="image-error"></div>`);
           marker.unbindPopup();
-          marker.bindPopup(wrapper, { offset: [0, -35] });
+          marker.bindPopup(wrapper, { offset: [0,5] });
           marker.openPopup();
         };
       });

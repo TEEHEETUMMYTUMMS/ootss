@@ -136,21 +136,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          22.0,
-          5.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "mirror",
-        "name": "mirror_7"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           24.0,
           -1.0
         ]
@@ -161,6 +146,21 @@
         "solution": "wa4wasd3w2asdsa2was3xawa9d4s3aw2dwa5d5s2dwdwa7d6xaw",
         "area": "mirror",
         "name": "mirror_6_alt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          22.0,
+          5.0
+        ]
+      },
+      "properties": {
+        "type": "level",
+        "area": "mirror",
+        "name": "mirror_7"
       }
     },
     {
@@ -260,36 +260,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          39.0,
-          2.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "mirror",
-        "name": "mirror_17"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          40.0,
-          5.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "mirror",
-        "name": "mirror_18"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           38.0,
           2.0
         ]
@@ -305,6 +275,36 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          39.0,
+          2.0
+        ]
+      },
+      "properties": {
+        "type": "level",
+        "area": "mirror",
+        "name": "mirror_17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          42.0,
+          5.0
+        ]
+      },
+      "properties": {
+        "type": "level",
+        "area": "mirror",
+        "name": "mirror_sink"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           41.0,
           5.0
         ]
@@ -313,6 +313,21 @@
         "type": "level",
         "area": "mirror",
         "name": "mirror_20"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.0,
+          5.0
+        ]
+      },
+      "properties": {
+        "type": "level",
+        "area": "mirror",
+        "name": "mirror_18"
       }
     },
     {
@@ -395,21 +410,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          42.0,
-          5.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "mirror",
-        "name": "mirror_sink"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           41.0,
           -14.0
         ]
@@ -478,6 +478,21 @@
         "type": "level",
         "area": "heroes1",
         "name": "heroes1_1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          -14.0
+        ]
+      },
+      "properties": {
+        "type": "level",
+        "area": "heroes1",
+        "name": "heroes1_2_v2"
       }
     },
     {
@@ -763,21 +778,6 @@
         "type": "level",
         "area": "heroes1",
         "name": "heroes1_21_v3"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          0.0,
-          -14.0
-        ]
-      },
-      "properties": {
-        "type": "level",
-        "area": "heroes1",
-        "name": "heroes1_2_v2"
       }
     },
     {

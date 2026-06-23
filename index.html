@@ -721,15 +721,15 @@ function drawMap() {
 
   map = L.map('map', {
     crs: crs,
-    zoom: 2,
+    zoom: 3.5,
     center: center,
     zoomControl: false,
     maxZoom: 8,
     renderer: L.canvas({ padding: 0.5 }),
 
     zoomSnap: 0.5,
-    zoomDelta: 0.5,
-    wheelPxPerZoomLevel: 100,
+    //zoomDelta: 0.5,
+    //wheelPxPerZoomLevel: 100,
   });
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);

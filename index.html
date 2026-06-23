@@ -420,6 +420,8 @@ let currentOpenMarker = null;
 
 let polygonLayer = null;
 
+let solutions = {};
+
 function focusMarkerByName(name) {
   let found = null
 
@@ -898,7 +900,7 @@ function drawMap() {
           wrapper.innerHTML = `
             <div class="popup-header"><a href="javascript:copyToClipboard('${props.name}')"><b>${props.name}</b></a> / ${props.area} (${getCoordinates(marker)})</div>
             ${bodyHTML}
-            ${props.solution && '<span class="wrap"><a href="https://github.com/joric/ootss/wiki#solutions" target=_blank>'+props.solution+'</a></span>'||''}
+            ${solutions[props.name] && '<span class="wrap"><a href="https://github.com/joric/ootss/wiki#solutions" target=_blank>'+solutions[props.name]+'</a></span>'||''}
           `;
           return wrapper;
         };
@@ -1096,6 +1098,14 @@ function drawMap() {
 }
 
 window.onload = function() {
+  fetch('data/solutions.txt').then(r=>r.text()).then(data=>{
+    const lines = data.split('\n');
+    for (const line of lines) {
+      const [key, ...valueParts] = line.trim().split(':');
+      solutions[key] = valueParts.join(':');
+    }
+  });
+
   fetch('data/regions.json').then(r=>r.json()).then(data=>{
     regionData = data;
     drawMap();

@@ -2,12 +2,14 @@ import re, shutil
 
 rle = lambda s: re.sub(r'(.)\1*', lambda m: m[1] + str(len(m[0]) if len(m[0]) > 1 else ''), s)
 
-shutil.copy2('solutions.csv', 'solutions.csv.bak')
+fname = '..data/solutions.txt'
 
-with open('solutions.csv') as f:
+shutil.copy2(fname, 'solutions.txt.bak')
+
+with open(fname) as f:
     rows = [l.split(',', 1) for l in f.read().splitlines() if l]
 
-with open('solutions.csv', 'w') as f:
+with open(fname, 'w') as f:
     f.writelines(f"{n},{rle(s)}\n" for n, s in rows)
 
 print("Done.")

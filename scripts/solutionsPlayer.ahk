@@ -6,11 +6,11 @@ global solIndex := 0
 global stopFlag := false
 
 ; Load CSV: name,sequence per line
-Loop Read, "solutions.csv" {
+Loop Read, "../data/solutions.txt" {
     line := A_LoopReadLine
     if (line = "")
         continue
-    parts := StrSplit(line, ",", , 2)
+    parts := StrSplit(line, ":", , 2)
     if (parts.Length = 2) {
         solMap[parts[1]] := parts[2]
         solNames.Push(parts[1])

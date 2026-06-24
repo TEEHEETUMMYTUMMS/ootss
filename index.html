@@ -898,8 +898,8 @@ function drawMap() {
           wrapper.className = 'image-wrapper';
           let html = `<b class="copyable">${props.name}</b></a> / ${props.area} (${getCoordinates(marker)})`;
           html += bodyHTML;
-          const solution = solutions[props.name];
-          if (solution) {
+          const s = solutions[props.name]||'';
+          if (s.length>1) {
             html += `<span class="wrap"><a href="https://github.com/joric/ootss/wiki#solutions" target=_blank>Solution</a>:&nbsp<span class="copyable">${solution}</span></span>`;
           }
           wrapper.innerHTML = html;

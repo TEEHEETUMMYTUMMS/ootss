@@ -15,8 +15,12 @@ global solIndex := 0
 global stopFlag := false
 global recording := false
 global recordBuf := ""
+global BASE_TITLE := "Solution Player"
 global mainGui := 0
 global ddl := 0
+global playBtn := 0
+global recBtn := 0
+global stopBtn := 0
 global SolutionsPath := "../data/solutions.txt"
 
 global RECORD_KEY := Map(
@@ -37,9 +41,50 @@ global PLAYBACK_KEY := Map(
     "C", SWITCH_CHARACTERS
 )
 
+; ---------- UI State ----------
+SetGuiTitle(title := "") {
+    global mainGui, BASE_TITLE
+    if !IsObject(mainGui)
+        return
+    mainGui.Title := (title = "") ? BASE_TITLE : title
+}
+
+SetIdleUI() {
+    global playBtn, recBtn, stopBtn
+    if IsObject(playBtn)
+        playBtn.Enabled := true
+    if IsObject(recBtn)
+        recBtn.Enabled := true
+    if IsObject(stopBtn)
+        stopBtn.Enabled := false
+    SetGuiTitle()
+}
+
+SetRecordingUI() {
+    global playBtn, recBtn, stopBtn
+    if IsObject(playBtn)
+        playBtn.Enabled := false
+    if IsObject(recBtn)
+        recBtn.Enabled := false
+    if IsObject(stopBtn)
+        stopBtn.Enabled := true
+    SetGuiTitle("Recording...")
+}
+
+SetPlayingUI() {
+    global playBtn, recBtn, stopBtn
+    if IsObject(playBtn)
+        playBtn.Enabled := false
+    if IsObject(recBtn)
+        recBtn.Enabled := false
+    if IsObject(stopBtn)
+        stopBtn.Enabled := true
+    SetGuiTitle("Playing...")
+}
+
 ; ---------- Load ----------
 LoadSolutions() {
-    global solMap, solNames
+    global solMap, solNames, SolutionsPath
     solMap := Map()
     solNames := []
     Loop Read, SolutionsPath {
@@ -59,7 +104,7 @@ LoadSolutions()
 
 ; ---------- Save ----------
 SaveSolutions() {
-    global solMap, solNames
+    global solMap, solNames, SolutionsPath
     out := ""
     for i, name in solNames {
         out .= name ":" solMap[name] "`n"
@@ -141,6 +186,58 @@ Play(s) {
     return true
 }
 
+; ---------- Shared play helpers ----------
+GetActiveLevelName() {
+    global solIndex, solNames, ddl
+
+    name := ""
+    if IsObject(ddl)
+        name := CurrentSelectedName()
+    if (name = "" && solIndex >= 1 && solIndex <= solNames.Length)
+        name := solNames[solIndex]
+    if (name = "" && solNames.Length >= 1) {
+        name := solNames[1]
+        solIndex := 1
+    }
+    return name
+}
+
+GetLevelIndexByName(name) {
+    global solNames
+    for i, n in solNames
+        if (n = name)
+            return i
+    return 0
+}
+
+PlayCurrent(advance := false) {
+    global solIndex, solNames, solMap
+
+    name := GetActiveLevelName()
+    if (name = "") {
+        MsgBox("No level selected")
+        return
+    }
+
+    curIdx := GetLevelIndexByName(name)
+
+    SetPlayingUI()
+    ToolTip("Playing: " name)
+    completed := Play(solMap[name])
+    SetIdleUI()
+    SetTimer(() => ToolTip(), -1000)
+
+    if (advance && completed) {
+        nextIndex := curIdx + 1
+        if (nextIndex > solNames.Length) {
+            MsgBox("No more lines left in solutions file")
+        } else {
+            solIndex := nextIndex
+            RefreshDropdown(solNames[nextIndex])
+        }
+    }
+}
+
 ; ---------- Recording ----------
 RecordKey(code) {
     global recording, recordBuf
@@ -148,8 +245,6 @@ RecordKey(code) {
         recordBuf .= code
 }
 
-; Function param creates a fresh, properly-scoped binding per call,
-; unlike a loop variable, which all closures would otherwise share.
 MakeRecorder(code) {
     return (*) => RecordKey(code)
 }
@@ -172,6 +267,7 @@ StartRecording() {
     global recording, recordBuf
     recording := true
     recordBuf := ""
+    SetRecordingUI()
     ToolTip("Recording...")
 }
 
@@ -184,6 +280,7 @@ StopRecordingAndSave(name) {
     solMap[name] := encoded
     SaveSolutions()
     RefreshDropdown(name)
+    SetIdleUI()
     ToolTip("Saved " name ": " encoded)
     SetTimer(() => ToolTip(), -1200)
 }
@@ -202,7 +299,7 @@ RefreshDropdown(selectName := "") {
                 break
             }
         }
-    } else {
+    } else if (solNames.Length >= 1) {
         ddl.Choose(1)
     }
 }
@@ -215,16 +312,17 @@ CurrentSelectedName() {
 }
 
 OpenGui(*) {
-    global mainGui, ddl, solNames, solIndex
+    global mainGui, ddl, solNames, solIndex, playBtn, recBtn, stopBtn, BASE_TITLE
     if IsObject(mainGui) {
         mainGui.Show()
         return
     }
-    mainGui := Gui("+AlwaysOnTop", "Solution Player")
+    mainGui := Gui("+AlwaysOnTop", BASE_TITLE)
     mainGui.Add("Text", , "Level:")
     ddl := mainGui.Add("DropDownList", "w300 vChoice", DisplayList())
     startSel := (solIndex >= 1 && solIndex <= solNames.Length) ? solIndex : 1
-    ddl.Choose(startSel)
+    if (solNames.Length >= 1)
+        ddl.Choose(startSel)
     ddl.OnEvent("Change", OnDropdownChange)
 
     playBtn := mainGui.Add("Button", "w90", "Play")
@@ -234,8 +332,9 @@ OpenGui(*) {
     playBtn.OnEvent("Click", (*) => DoPlay())
     recBtn.OnEvent("Click", (*) => DoRecord())
     stopBtn.OnEvent("Click", (*) => DoStop())
+    mainGui.OnEvent("Close", (*) => ExitApp())
 
-    mainGui.OnEvent("Close", (*) => mainGui.Hide())
+    SetIdleUI()
     mainGui.Show("AutoSize")
 }
 
@@ -251,13 +350,7 @@ OnDropdownChange(*) {
 }
 
 DoPlay(*) {
-    global solMap
-    name := CurrentSelectedName()
-    if (name = "")
-        return
-    ToolTip("Playing: " name)
-    Play(solMap[name])
-    SetTimer(() => ToolTip(), -1000)
+    PlayCurrent(false)
 }
 
 DoRecord(*) {
@@ -270,50 +363,14 @@ DoStop(*) {
     name := CurrentSelectedName()
     if (recording && name != "")
         StopRecordingAndSave(name)
+    else
+        SetIdleUI()
 }
 
 ; ---------- Hotkeys ----------
 ^!e:: OpenGui()
-
-!e:: {
-    global solIndex, solNames, solMap, ddl
-
-    name := ""
-    if IsObject(ddl)
-        name := CurrentSelectedName()
-    if (name = "" && solIndex >= 1 && solIndex <= solNames.Length)
-        name := solNames[solIndex]
-    if (name = "" && solNames.Length >= 1) {
-        name := solNames[1]
-        solIndex := 1
-    }
-    if (name = "") {
-        MsgBox("No level selected")
-        return
-    }
-
-    curIdx := 0
-    for i, n in solNames {
-        if (n = name) {
-            curIdx := i
-            break
-        }
-    }
-
-    ToolTip("Playing: " name)
-    completed := Play(solMap[name])
-    SetTimer(() => ToolTip(), -1000)
-
-    if completed {
-        nextIndex := curIdx + 1
-        if (nextIndex > solNames.Length) {
-            MsgBox("No more lines left in solutions file")
-        } else {
-            solIndex := nextIndex
-            RefreshDropdown(solNames[nextIndex])
-        }
-    }
-}
+^+e:: PlayCurrent(true)   ; Play + advance
+!e::  PlayCurrent(false)  ; Play only
 
 ^e:: {
     global recording, solIndex, solNames, ddl
@@ -336,3 +393,5 @@ DoStop(*) {
     global stopFlag
     stopFlag := true
 }
+
+OpenGui()

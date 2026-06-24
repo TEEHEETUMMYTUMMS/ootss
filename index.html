@@ -1084,7 +1084,7 @@ function drawMap() {
   //map.on('move zoomend moveend resize', drawGrid);
   //map.whenReady(drawGrid);
 
-  window.addEventListener("keydown",function (e) {
+  document.addEventListener("keydown",function (e) {
     if (e.code=='KeyF') {
       if (e.ctrlKey) {
         searchControl.expand(true);

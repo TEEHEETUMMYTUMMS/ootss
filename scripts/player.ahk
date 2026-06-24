@@ -1,4 +1,14 @@
 #Requires AutoHotkey v2.0
+
+; ================= USER CONFIG =================
+UP := "w"
+LEFT := "a"
+DOWN := "s"
+RIGHT := "d"
+PRIMARY_ACTION := "x"
+SWITCH_CHARACTERS := "c"
+; =================================================
+
 global solMap := Map()
 global solNames := []
 global solIndex := 0
@@ -8,6 +18,24 @@ global recordBuf := ""
 global mainGui := 0
 global ddl := 0
 global SolutionsPath := "../data/solutions.txt"
+
+global RECORD_KEY := Map(
+    "u", UP,
+    "l", LEFT,
+    "d", DOWN,
+    "r", RIGHT,
+    "x", PRIMARY_ACTION,
+    "c", SWITCH_CHARACTERS
+)
+
+global PLAYBACK_KEY := Map(
+    "u", "{Up}",
+    "l", "{Left}",
+    "d", "{Down}",
+    "r", "{Right}",
+    "x", PRIMARY_ACTION,
+    "c", SWITCH_CHARACTERS
+)
 
 ; ---------- Load ----------
 LoadSolutions() {
@@ -29,7 +57,7 @@ LoadSolutions() {
 }
 LoadSolutions()
 
-; ---------- Save (rewrite whole file) ----------
+; ---------- Save ----------
 SaveSolutions() {
     global solMap, solNames
     out := ""
@@ -85,6 +113,16 @@ NameFromDisplay(text) {
 }
 
 ; ---------- Playback ----------
+SendCode(code) {
+    global PLAYBACK_KEY
+    keyStr := PLAYBACK_KEY[code]
+    if (StrLen(keyStr) = 1) {
+        SendEvent("{Raw}" keyStr)
+    } else {
+        SendEvent(keyStr)
+    }
+}
+
 Play(s) {
     global stopFlag
     stopFlag := false
@@ -97,29 +135,38 @@ Play(s) {
             SetTimer(() => ToolTip(), -800)
             return false
         }
-        SendEvent(A_LoopField)
+        SendCode(A_LoopField)
         Sleep(150)
     }
     return true
 }
 
 ; ---------- Recording ----------
-; Keys used by the game in solutions: w a s d x
-RecordKey(k) {
+RecordKey(code) {
     global recording, recordBuf
     if recording
-        recordBuf .= k
+        recordBuf .= code
 }
-~w::RecordKey("w")
-~a::RecordKey("a")
-~s::RecordKey("s")
-~d::RecordKey("d")
-~x::RecordKey("x")
-~c::RecordKey("c")
-~Up::RecordKey("w")
-~Left::RecordKey("a")
-~Down::RecordKey("s")
-~Right::RecordKey("d")
+
+; Function param creates a fresh, properly-scoped binding per call,
+; unlike a loop variable, which all closures would otherwise share.
+MakeRecorder(code) {
+    return (*) => RecordKey(code)
+}
+
+RegisterRecordingHotkeys() {
+    global RECORD_KEY
+    for code, key in RECORD_KEY {
+        try Hotkey("~" key, MakeRecorder(code))
+    }
+
+    ; Cursor keys always count as directions too, regardless of config
+    try Hotkey("~Up", MakeRecorder("u"))
+    try Hotkey("~Left", MakeRecorder("l"))
+    try Hotkey("~Down", MakeRecorder("d"))
+    try Hotkey("~Right", MakeRecorder("r"))
+}
+RegisterRecordingHotkeys()
 
 StartRecording() {
     global recording, recordBuf
@@ -219,7 +266,7 @@ DoRecord(*) {
 
 DoStop(*) {
     global stopFlag, recording
-    stopFlag := true ; cancels any active playback
+    stopFlag := true
     name := CurrentSelectedName()
     if (recording && name != "")
         StopRecordingAndSave(name)
@@ -245,7 +292,6 @@ DoStop(*) {
         return
     }
 
-    ; find index of the level we're about to play
     curIdx := 0
     for i, n in solNames {
         if (n = name) {
@@ -269,7 +315,6 @@ DoStop(*) {
     }
 }
 
-; ---------- Ctrl+Alt+E: toggle recording ----------
 ^!e:: {
     global recording, solIndex, solNames, ddl
     if recording {
@@ -286,6 +331,7 @@ DoStop(*) {
         StartRecording()
     }
 }
+
 ~Esc:: {
     global stopFlag
     stopFlag := true

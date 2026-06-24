@@ -115,6 +115,7 @@ RecordKey(k) {
 ~s::RecordKey("s")
 ~d::RecordKey("d")
 ~x::RecordKey("x")
+~c::RecordKey("c")
 
 StartRecording() {
     global recording, recordBuf

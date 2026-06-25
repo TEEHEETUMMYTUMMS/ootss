@@ -873,7 +873,7 @@ function drawMap() {
         let name = marker.feature.properties.name;
         let lines = [`<b>${name}</b> / ${marker.feature.properties.area} (${getCoordinates(marker)})`];
         let s = (solutions[name]||'');
-        if (s) lines.push(`Soution: ${s.length} moves`);
+        if (s) lines.push(`Soution: ${s.length}`);
         return lines.join('<br/>');
       };
 
